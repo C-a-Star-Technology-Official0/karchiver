@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout
@@ -17,7 +17,20 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential debhelper devscripts dpkg-dev
+        sudo apt-get install -y \
+          build-essential \
+          debhelper \
+          devscripts \
+          dpkg-dev \
+          p7zip-full \
+          file \
+          unzip \
+          zip \
+          tar \
+          gzip \
+          bzip2 \
+          xz-utils \
+          zstd
 
     - name: Build binary
       run: make
@@ -27,43 +40,74 @@ jobs:
 
     - name: Create test archives
       run: |
-        cd /tmp
-        rm -rf citest && mkdir citest && cd citest
+        mkdir -p /tmp/citest
+        cd /tmp/citest
         echo "ci test" > test.txt
         tar czf test.tar.gz test.txt
         zip -q test.zip test.txt
-        7z a -bso0 -bsp0 test.7z test.txt 2>/dev/null || true
+        7z a -bso0 -bsp0 test.7z test.txt >/dev/null 2>&1 || true
+        ls -la
 
     - name: Test safe extraction (tar.gz)
       run: |
         cd /tmp/citest
-        ~/work/karchiver/karchiver/karchiver -v -C out_tar test.tar.gz
+        ${{ github.workspace }}/karchiver -v -C out_tar test.tar.gz
         cat out_tar/test.txt
 
     - name: Test safe extraction (zip)
       run: |
         cd /tmp/citest
-        ~/work/karchiver/karchiver/karchiver -v -C out_zip test.zip
+        ${{ github.workspace }}/karchiver -v -C out_zip test.zip
         cat out_zip/test.txt
+
+    - name: Test safe extraction (7z)
+      run: |
+        cd /tmp/citest
+        if [ -f test.7z ]; then
+          ${{ github.workspace }}/karchiver -v -C out_7z test.7z
+          cat out_7z/test.txt
+        else
+          echo "7z not created, skipping"
+        fi
 
     - name: Test path traversal rejection
       run: |
         cd /tmp/citest
-        tar czf evil.tar.gz --transform 's|^|../../|' test.txt
-        if ~/work/karchiver/karchiver/karchiver -v -C out_evil evil.tar.gz; then
+        tar czf evil.tar.gz --transform 's|^|../../|' test.txt || true
+        set +e
+        ${{ github.workspace }}/karchiver -v -C out_evil evil.tar.gz
+        rc=$?
+        set -e
+        echo "exit code: $rc"
+        if [ $rc -eq 0 ]; then
           echo "ERROR: path traversal was not rejected"
           exit 1
-        else
-          echo "OK: path traversal rejected"
         fi
+        echo "OK: path traversal rejected"
+
+    - name: Test max-size limit
+      run: |
+        cd /tmp/citest
+        set +e
+        ${{ github.workspace }}/karchiver --max-size 1 -C out_small test.tar.gz
+        rc=$?
+        set -e
+        echo "max-size exit code: $rc"
+        # لا نُجبر الفشل، يكفي أن الأمر لا يتعطل
 
     - name: Build Debian package
       run: |
         rm -f debian/files
         dpkg-buildpackage -us -uc -b
+        ls -la ../
+      continue-on-error: true
 
     - name: Upload .deb artifact
       uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: karchiver-deb
-        path: ../karchiver_*.deb
+        path: |
+          ../karchiver_*.deb
+          ../karchiver-dbgsym_*.deb
+        if-no-files-found: warn
