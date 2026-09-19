@@ -1,0 +1,27 @@
+.TH KARCHIVER 1 "2026" "Karchiver 0.1" "أوامر المستخدم"
+.SH الاسم
+karchiver \- مستخرج أرشيفات شامل
+.SH الصيغة
+.B karchiver
+[\-v] [\-C DIR] \fIarchive\fR
+.br
+.B karchiver
+\-\-list\-formats
+.SH الوصف
+.B karchiver
+يستخرج الأرشيفات باستخدام أدوات النظام الأصلية (tar, unzip, 7z, ...).
+لا يرتبط بمكتبة libarchive.
+.SH الخيارات
+.TP
+.B \-v, \-\-verbose
+إخراج مفصّل.
+.TP
+.B \-C DIR
+الاستخراج إلى المجلد DIR.
+.TP
+.B \-l, \-\-list\-formats
+عرض الصيغ المدعومة.
+.SH المؤلف
+شركة C.a. Star Technology <https://c-a-star.blogspot.com/>
+.SH الرخصة
+GPL-3.0-or-later.
