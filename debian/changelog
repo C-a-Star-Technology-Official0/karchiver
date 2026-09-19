@@ -1,0 +1,17 @@
+karchiver (0.4.0-1) unstable; urgency=medium
+
+  * Add vector logo (SVG) installed under hicolor theme.
+  * Makefile: add install-icon and install-all targets.
+  * debian/rules: use install-all in override_dh_auto_install.
+
+ -- C.a. Star Technology <ayaakdri123@gmail.com>  Fri, 19 Sep 2026 19:30:00 +0000
+
+karchiver (0.3.0-1) unstable; urgency=medium
+
+  * Initial Debian packaging.
+  * Safe extraction: staging directory, path/symlink verification,
+    maximum size limit.
+  * Desktop integration: .desktop file, MIME types, file manager actions.
+  * Supports tar, zip, 7z, rar, cab, lha, deb and common compressors.
+
+ -- C.a. Star Technology <ayaakdri123@gmail.com>  Fri, 19 Sep 2026 18:00:00 +0000

@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+# debian/rules for karchiver
+# Copyright (C) 2026 C.a. Star Technology
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	$(MAKE) CC="$(CC)" CFLAGS="$(CFLAGS) -O2 -Wall -Wextra"
+
+override_dh_auto_install:
+	$(MAKE) install-all DESTDIR=$(CURDIR)/debian/karchiver PREFIX=/usr
+
+override_dh_auto_clean:
+	$(MAKE) clean

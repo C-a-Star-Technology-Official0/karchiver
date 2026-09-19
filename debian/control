@@ -1,0 +1,42 @@
+Source: karchiver
+Section: utils
+Priority: optional
+Maintainer: C.a. Star Technology <ayaakdri123@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/C-a-Star-Technology-Official0/karchiver
+Rules-Requires-Root: no
+Vcs-Git: https://github.com/C-a-Star-Technology-Official0/karchiver.git
+Vcs-Browser: https://github.com/C-a-Star-Technology-Official0/karchiver
+
+Package: karchiver
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         tar,
+         gzip,
+         bzip2,
+         xz-utils,
+         zstd,
+         unzip,
+         binutils,
+         coreutils
+Recommends: zenity,
+            7zip | p7zip-full,
+            unrar | unrar-free,
+            cabextract,
+            lha
+Suggests: file
+Description: Universal archive extractor for GNU/Linux
+ Karchiver is a simple and safe command-line tool that extracts
+ archives using the system's native tools (tar, unzip, 7z, ar, ...).
+ It runs each extractor via execvp without a shell, extracts into a
+ staging directory first, verifies paths and symlinks, and enforces
+ a maximum size limit to defend against path traversal and zip bombs.
+ .
+ It integrates with desktop environments through a .desktop file
+ and MIME type associations, providing "Extract Here" and
+ "Extract To..." actions in file managers.
+ .
+ Supported formats: tar, tar.gz, tar.bz2, tar.xz, tar.zst, gz, bz2,
+ xz, zst, lzma, z, zip, jar, war, apk, 7z, rar, lha, lzh, cab, deb, ar.
