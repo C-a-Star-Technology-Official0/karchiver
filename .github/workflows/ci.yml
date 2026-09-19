@@ -18,19 +18,8 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          build-essential \
-          debhelper \
-          devscripts \
-          dpkg-dev \
-          p7zip-full \
-          file \
-          unzip \
-          zip \
-          tar \
-          gzip \
-          bzip2 \
-          xz-utils \
-          zstd
+          build-essential debhelper devscripts dpkg-dev \
+          p7zip-full file unzip zip tar gzip bzip2 xz-utils zstd
 
     - name: Build binary
       run: make
@@ -66,8 +55,6 @@ jobs:
         if [ -f test.7z ]; then
           ${{ github.workspace }}/karchiver -v -C out_7z test.7z
           cat out_7z/test.txt
-        else
-          echo "7z not created, skipping"
         fi
 
     - name: Test path traversal rejection
@@ -88,26 +75,24 @@ jobs:
     - name: Test max-size limit
       run: |
         cd /tmp/citest
-        set +e
-        ${{ github.workspace }}/karchiver --max-size 1 -C out_small test.tar.gz
-        rc=$?
-        set -e
-        echo "max-size exit code: $rc"
-        # لا نُجبر الفشل، يكفي أن الأمر لا يتعطل
+        ${{ github.workspace }}/karchiver --max-size 1 -C out_small test.tar.gz || true
 
     - name: Build Debian package
       run: |
         rm -f debian/files
-        dpkg-buildpackage -us -uc -b
-        ls -la ../
-      continue-on-error: true
+        dpkg-buildpackage -us -uc -b || true
+        echo "--- ../ listing ---"
+        ls -la ../ || true
+        echo "--- copying .deb into workspace ---"
+        mkdir -p ./artifacts
+        cp -v ../karchiver_*.deb ./artifacts/ 2>/dev/null || true
+        cp -v ../karchiver-dbgsym_*.deb ./artifacts/ 2>/dev/null || true
+        ls -la ./artifacts/ || true
 
     - name: Upload .deb artifact
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: karchiver-deb
-        path: |
-          ../karchiver_*.deb
-          ../karchiver-dbgsym_*.deb
+        path: artifacts/*.deb
         if-no-files-found: warn
