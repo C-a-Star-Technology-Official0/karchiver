@@ -35,7 +35,6 @@ jobs:
         tar czf test.tar.gz test.txt
         zip -q test.zip test.txt
         7z a -bso0 -bsp0 test.7z test.txt >/dev/null 2>&1 || true
-        ls -la
 
     - name: Test safe extraction (tar.gz)
       run: |
@@ -77,17 +76,30 @@ jobs:
         cd /tmp/citest
         ${{ github.workspace }}/karchiver --max-size 1 -C out_small test.tar.gz || true
 
-    - name: Build Debian package
+    - name: Build Debian package (verbose)
       run: |
         rm -f debian/files
-        dpkg-buildpackage -us -uc -b || true
-        echo "--- ../ listing ---"
-        ls -la ../ || true
-        echo "--- copying .deb into workspace ---"
-        mkdir -p ./artifacts
-        cp -v ../karchiver_*.deb ./artifacts/ 2>/dev/null || true
-        cp -v ../karchiver-dbgsym_*.deb ./artifacts/ 2>/dev/null || true
-        ls -la ./artifacts/ || true
+        set +e
+        dpkg-buildpackage -us -uc -b > /tmp/build.log 2>&1
+        rc=$?
+        set -e
+        echo "=== dpkg-buildpackage exit code: $rc ==="
+        echo "=== last 60 lines of build log ==="
+        tail -60 /tmp/build.log
+        echo "=== listing parent dir ==="
+        ls -la ../
+        mkdir -p artifacts
+        cp -v ../karchiver_*.deb artifacts/ 2>/dev/null || echo "no karchiver .deb"
+        cp -v ../karchiver-dbgsym_*.deb artifacts/ 2>/dev/null || echo "no dbgsym .deb"
+        ls -la artifacts/
+
+    - name: Upload build log
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: build-log
+        path: /tmp/build.log
+        if-no-files-found: warn
 
     - name: Upload .deb artifact
       uses: actions/upload-artifact@v4
